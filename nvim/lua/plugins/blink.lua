@@ -1,60 +1,155 @@
+-- lua/plugins/blink.lua
 return {
 	"saghen/blink.cmp",
-	-- optional: provides snippets for the snippet source
-	dependencies = { "rafamadriz/friendly-snippets", "github/copilot.vim", "fang2hou/blink-copilot" },
+	version = "1.*", -- stable release line — main/v2 has active breaking changes
+	dependencies = {
+		"rafamadriz/friendly-snippets", -- snippet collection for many languages
+	},
+	event = "InsertEnter",
 
-	-- use a release tag to download pre-built binaries
-	version = "1.*",
-	-- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
-	-- build = 'cargo build --release',
-	-- If you use nix, you can build from source using latest nightly rust with:
-	-- build = 'nix run .#build-plugin',
-
-	---@module 'blink.cmp'
+	---@module "blink.cmp"
 	---@type blink.cmp.Config
 	opts = {
-		-- 'default' (recommended) for mappings similar to built-in completions (C-y to accept)
-		-- 'super-tab' for mappings similar to vscode (tab to accept)
-		-- 'enter' for enter to accept
-		-- 'none' for no mappings
-		--
-		-- All presets have the following mappings:
-		-- C-space: Open menu or open docs if already open
-		-- C-n/C-p or Up/Down: Select next/previous item
-		-- C-e: Hide menu
-		-- C-k: Toggle signature help (if signature.enabled = true)
-		--
-		-- See :h blink-cmp-config-keymap for defining your own keymap
-		keymap = { preset = "enter" },
+		keymap = { preset = "enter" }, -- Tab to select+accept, arrows to navigate
 
+		snippets = { preset = "default" },
+
+		-----------------------------------------------------------------
+		-- Appearance
+		-----------------------------------------------------------------
 		appearance = {
-			-- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
-			-- Adjusts spacing to ensure icons are aligned
+			-- 'mono' keeps icon widths aligned; use 'normal' if your font
+			-- isn't a Nerd Font Mono variant
 			nerd_font_variant = "mono",
-		},
 
-		signature = { enabled = true },
-
-		-- (Default) Only show the documentation popup when manually triggered
-		completion = { documentation = { auto_show = true } },
-
-		-- Default list of enabled providers defined so that you can extend it
-		-- elsewhere in your config, without redefining it, due to `opts_extend`
-		sources = {
-			default = { "lsp", "path", "snippets", "buffer", "copilot" },
-			providers = {
-				copilot = {
-					name = "copilot",
-					module = "blink-copilot",
-				},
+			kind_icons = {
+				Text = "󰉿",
+				Method = "󰆧",
+				Function = "󰊕",
+				Constructor = "",
+				Field = "󰜢",
+				Variable = "󰀫",
+				Class = "󰠱",
+				Interface = "",
+				Module = "",
+				Property = "󰜢",
+				Unit = "󰑭",
+				Value = "󰎠",
+				Enum = "",
+				Keyword = "󰌋",
+				Snippet = "",
+				Color = "󰏘",
+				File = "󰈙",
+				Reference = "󰈇",
+				Folder = "󰉋",
+				EnumMember = "",
+				Constant = "󰏿",
+				Struct = "󰙅",
+				Event = "",
+				Operator = "󰆕",
+				TypeParameter = "󰊄",
 			},
 		},
 
-		-- (Default) Rust fuzzy matcher for typo resistance and significantly better performance
-		-- You may use a lua implementation instead by using `implementation = "lua"` or fallback to the lua implementation,
-		-- when the Rust fuzzy matcher is not available, by using `implementation = "prefer_rust"`
-		--
-		-- See the fuzzy documentation for more information
+		-----------------------------------------------------------------
+		-- Completion menu, docs window, ghost text
+		-----------------------------------------------------------------
+		completion = {
+			accept = {
+				auto_brackets = { enabled = true },
+			},
+
+			list = {
+				selection = { preselect = true, auto_insert = false },
+			},
+
+			menu = {
+				border = "rounded",
+				winblend = 0,
+				winhighlight = "Normal:BlinkCmpMenu,FloatBorder:BlinkCmpMenuBorder,CursorLine:BlinkCmpMenuSelection,Search:None",
+				scrollbar = true,
+
+				draw = {
+					padding = { 1, 1 },
+					gap = 2,
+					treesitter = { "lsp" }, -- treesitter-highlight the entries themselves
+					columns = {
+						{ "kind_icon" },
+						{ "label", "label_description", gap = 1 },
+						{ "kind" },
+					},
+					components = {
+						kind_icon = {
+							text = function(ctx)
+								return " " .. ctx.kind_icon .. " "
+							end,
+							highlight = "BlinkCmpKind",
+						},
+						label = {
+							width = { fill = true, max = 40 },
+							text = function(ctx)
+								return ctx.label
+							end,
+							highlight = "BlinkCmpLabel",
+						},
+						label_description = {
+							width = { max = 30 },
+							text = function(ctx)
+								return ctx.label_description
+							end,
+							highlight = "BlinkCmpLabelDescription",
+						},
+						kind = {
+							text = function(ctx)
+								return ctx.kind
+							end,
+							highlight = "BlinkCmpKind",
+						},
+					},
+				},
+			},
+
+			documentation = {
+				auto_show = true,
+				auto_show_delay_ms = 200,
+				window = {
+					border = "rounded",
+					winblend = 0,
+					winhighlight = "Normal:BlinkCmpDoc,FloatBorder:BlinkCmpDocBorder",
+				},
+			},
+
+			ghost_text = {
+				enabled = true,
+			},
+		},
+
+		-----------------------------------------------------------------
+		-- Signature help (function param hints while typing)
+		-----------------------------------------------------------------
+		signature = {
+			enabled = true,
+			window = {
+				border = "rounded",
+			},
+		},
+
+		-----------------------------------------------------------------
+		-- Sources
+		-----------------------------------------------------------------
+		sources = {
+			default = { "lsp", "path", "snippets", "buffer" },
+		},
+
+		-----------------------------------------------------------------
+		-- Cmdline completion (: and / search)
+		-----------------------------------------------------------------
+		cmdline = {
+			enabled = true,
+		},
+
+		-- Rust fuzzy matcher; falls back to Lua automatically if the
+		-- prebuilt binary can't be downloaded/compiled
 		fuzzy = { implementation = "prefer_rust_with_warning" },
 	},
 	opts_extend = { "sources.default" },

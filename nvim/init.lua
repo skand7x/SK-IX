@@ -2,8 +2,6 @@ require("config.lazy")
 
 require("config.keymaps")
 
-require("config.terminal")
-
 vim.opt.number = true
 vim.opt.cursorline = true
 vim.opt.relativenumber = true
@@ -26,3 +24,15 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 		})
 	end,
 })
+
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = { "<filetype>" },
+	callback = function()
+		vim.treesitter.start()
+	end,
+})
+
+vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+
+vim.api.nvim_set_hl(0, "NuiPopupNormal", { link = "NormalFloat" })
+vim.api.nvim_set_hl(0, "NuiPopupBorder", { fg = "#7aa2f7" }) -- pick any accent color
