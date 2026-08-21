@@ -1,0 +1,50 @@
+--------------------------------
+---- WINDOWS AND WORKSPACES ----
+--------------------------------
+
+local suppressMaximizeRule = hl.window_rule({
+	-- Ignore maximize requests from all apps. You'll probably like this.
+	name = "suppress-maximize-events",
+	match = { class = ".*" },
+
+	suppress_event = "maximize",
+})
+
+hl.window_rule({
+	name = "fix-xwayland-drags",
+	match = {
+		class = "^$",
+		title = "^$",
+		xwayland = true,
+		float = true,
+		fullscreen = false,
+		pin = false,
+	},
+
+	no_focus = true,
+})
+
+hl.window_rule({
+	name = "move-hyprland-run",
+	match = { class = "hyprland-run" },
+
+	move = "20 monitor_h-120",
+	float = true,
+})
+
+hl.window_rule({
+	name = "waypaper",
+	match = { class = "waypaper" },
+	float = true,
+})
+
+hl.window_rule({
+	name = "wallpaper-coverflow",
+	match = { title = "^(Wallpaper Coverflow)$" },
+
+	float = false,
+	size = "1600 820",
+	move = "(monitor_w-window_w)/2 48", -- horizontal center, 48px clear of the top bar
+	pin = true,
+	border_size = 0,
+})
